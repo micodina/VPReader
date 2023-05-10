@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from VPAgenda import Agenda
+
+import sys
+import os
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QListWidget, QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QLabel
+from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt
+
+#myAgenda=Agenda("/Users/michael/Documents/MesProgs/Visonneuse VideoPsalm/2023.05.08.vpagd")
+#print(myAgenda.filename)
+#for song in myAgenda.songs:
+#    print(song['ID'],":",song['Text'])
+#    for verse in song['Verses']:
+#        print("-------------------")
+#        print(verse['Text'])
+
+
+class ListSongs(QListWidget):
+    def clicked(self, item):
+        #QMessageBox.information(self, "ListWidget", "ListWidget: " + item.text())
+        print(self.currentRow())
+
+        song=window.myAgenda.songs[self.currentRow()]
+ 
+        window.listVerses.clear()
+        for verse in song['Verses']:
+            window.listVerses.addItem(verse['Text'])
+
+class ListVerses(QListWidget):
+    def clicked(self, item):
+        QMessageBox.information(self, "ListWidget", "ListWidget: " + item.text())
+
+class FullScreenWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        #self, flags=self.windowFlags() | Qt.WindowType.FramelessWindowHint)
+
+        self.label = QLabel("toto", self)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setStyleSheet("font-size: 48pt;color: white;")
+        self.setStyleSheet("background-color: blue;")
+
+        fullscreen_layout = QVBoxLayout(self)
+        fullscreen_layout.addWidget(self.label)
+
+    def updateLabel(self):
+            song=window.myAgenda.songs[window.indexsong]
+            verse=song['Verses'][window.indexverse]
+            self.label.setText(verse['Text'])
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape.value:
+            self.close()
+        elif event.key() == Qt.Key.Key_Up.value:
+            window.decrementIndex()
+            self.updateLabel()
+        elif event.key() == Qt.Key.Key_Down.value:
+            window.incrementIndex()
+            self.updateLabel()
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        # Actions File menu
+        open_action = QAction("Open", self)
+        open_action.setShortcut("Ctrl+F")
+        open_action.triggered.connect(self.doOpenFile)
+
+        close_action = QAction("Close", self)
+        close_action.setShortcut("Ctrl+X")
+        close_action.triggered.connect(self.doCloseFile)
+
+        quit_action = QAction("Quit", self)
+        quit_action.setShortcut("Ctrl+Q")
+        quit_action.triggered.connect(self.doQuit)
+
+        # Actions Display menu
+        fullscreen_action = QAction("Fullscreen", self)
+        fullscreen_action.setShortcut("Ctrl+P")
+        fullscreen_action.triggered.connect(self.doFullscreen)
+
+        # Actions Question menu
+        help_action = QAction("Help", self)
+        about_action = QAction("About", self)
+        
+        # Creation File menu
+        file_menu = self.menuBar().addMenu("File")
+        file_menu.addAction(open_action)
+        file_menu.addAction(close_action)
+        file_menu.addSeparator()
+        file_menu.addAction(quit_action)
+        
+        # Creation Display menu
+        display_menu = self.menuBar().addMenu("Display")
+        display_menu.addAction(fullscreen_action)
+
+        # Creation Question menu
+        menu_question = self.menuBar().addMenu("?")
+        menu_question.addAction(help_action)
+        menu_question.addAction(about_action)
+
+        # Container widget
+        widget = QWidget()
+        self.setCentralWidget(widget)
+        
+        # Creation listSongs
+        self.listSongs=ListSongs(self)
+        self.listSongs.show()
+        self.listSongs.itemClicked.connect(self.listSongs.clicked)
+
+        # Creation listVerse
+        self.listVerses=ListVerses(self)
+        self.listVerses.show()
+        self.listVerses.itemClicked.connect(self.listVerses.clicked)
+
+        # Création QHBoxLayout, add QListWidget
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.listSongs)
+        hbox.addWidget(self.listVerses)
+        widget.setLayout(hbox)
+    
+        self.setGeometry(100, 100, 600, 400)
+        self.setWindowTitle("VPReader")
+        self.fullScreenWindow=FullScreenWindow()
+
+    def incrementIndex(self):
+        song=self.myAgenda.songs[self.indexsong]
+        NSongs=self.myAgenda.songs.__len__()
+        NVerses=song['Verses'].__len__()
+        if self.indexverse<NVerses-1:
+            self.indexverse=self.indexverse+1
+        else:
+            if self.indexsong<NSongs-1:
+                self.indexsong=self.indexsong+1
+                self.indexverse=0
+
+    def decrementIndex(self):
+        song=self.myAgenda.songs[self.indexsong]
+        NSongs=self.myAgenda.songs.__len__()
+        NVerses=song['Verses'].__len__()
+        if self.indexverse>0:
+            self.indexverse=self.indexverse-1
+        elif self.indexsong>0:
+                self.indexsong=self.indexsong-1
+                song=self.myAgenda.songs[self.indexsong]
+                self.indexverse=song['Verses'].__len__()-1
+
+    def doOpenFile(self):
+        fname = QFileDialog.getOpenFileName(self,  "Open File", "${HOME}","VideoPsalm Agenda (*.vpagd);;All Files (*)",)
+        print(fname[0])
+        self.OpenFile(fname[0])
+
+    def OpenFile(self,filename):
+        self.myAgenda=Agenda(filename)
+        self.setWindowTitle("VPReader : "+ os.path.basename(self.myAgenda.filename))
+
+        for song in self.myAgenda.songs:
+            #print(song['ID'],":",song['Text'])
+            self.listSongs.addItem(str(song['ID'])+":"+song['Text'])
+
+        song=self.myAgenda.songs[0]
+        for verse in song['Verses']:
+            #print("-------------------")
+            #print(verse['Text'])
+            self.listVerses.addItem(verse['Text'])
+        
+        self.listSongs.setCurrentRow(0)
+        self.indexsong=0
+        self.indexverse=0
+
+    def doCloseFile(self):
+        del self.myAgenda
+        self.listVerses.clear()
+        self.listSongs.clear()
+        self.setWindowTitle("VPReader")
+    
+    def doQuit(self):
+        self.close()
+        QApplication.quit()
+        return
+    
+    def doFullscreen(self):
+
+        song=self.myAgenda.songs[0]
+        verse=song['Verses'][0]
+        print(verse['Text'])
+
+        self.fullScreenWindow.showFullScreen()
+        self.fullScreenWindow.label.setText(verse['Text'])
+
+#    def keyPressEvent(self, event):
+#        if event.key() == Qt.Key.Key_Escape.value:
+#            self.fullscreen_window.close()
+        
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
+
+
+
+
