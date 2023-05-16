@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# This file is part of the VPReader project.
+#
+# This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
+# Author : Michaël Codina
+
+
 from VPAgenda import Agenda
 from VPConfig import Config
 import sys
@@ -7,51 +14,75 @@ import os
 import webbrowser
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QListWidget, QWidget, QHBoxLayout, QVBoxLayout, QFileDialog, QLabel
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QPixmap
 from PyQt6.QtCore import Qt
 
 
-class ListSongs(QListWidget):
+class ListItems(QListWidget):
+    """ ListItems(), an class inherited from QListWidget to list items of an agenda.
+    """
     def clicked(self, item):
         # QMessageBox.information(self, "ListWidget", "ListWidget: " + item.text())
-        window.indexsong = self.currentRow()
-        window.listVerses.update()
-        print("{}/{}".format(window.indexsong, window.indexverse))
+        window.indexitem = self.currentRow()
+        window.listSlides.update()
+        print("{}/{}".format(window.indexitem, window.indexslide))
 
     def update(self):
         self.clear()
-        for song in window.myAgenda.songs:
-            self.addItem(str(song['ID'])+":"+song['Text'])
+        for item in window.myAgenda.data:
+            self.addItem(item.getshort())
 
 
-class ListVerses(QListWidget):
+class ListSlides(QListWidget):
+    """ ListSlides(), an class inherited from QListWidget to list slides of an item.
+    """
     def clicked(self, item):
-        window.indexverse = self.currentRow()
-        print("{}/{}".format(window.indexsong, window.indexverse))
+        window.indexslide = self.currentRow()
+        print("{}/{}".format(window.indexitem, window.indexslide))
 
     def update(self):
         self.clear()
-        song = window.myAgenda.songs[window.indexsong]
-        for verse in song['Verses']:
-            self.addItem(verse['Text'])
+        item = window.myAgenda.data[window.indexitem]
+        for slide in item.getcontent():
+            self.addItem(slide['Text'])
 
 
 class FullScreenWindow(QWidget):
+    """ FullScreenWindow(QWidget) a class inherited for the FullScreen Windows.
+    """
     def __init__(self):
         super().__init__()
+        # To be modified
+        self.setGeometry(0,0,320,240)
         self.label = QLabel(self)
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label.setStyleSheet(
-            "font-size: 48pt;color: white;font-weight: bold;")
-        self.setStyleSheet("background-color: blue;")
+        self.label.setWordWrap(True)
+        self.label.setStyleSheet("font-size: 48pt;color: white;font-weight: bold;")
+        self.footer = QLabel()
+        self.footer.setAlignment(Qt.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignBottom)
+        self.footer.setStyleSheet("font-size: 14pt;color: white;font-weight: bold;")
         fullscreen_layout = QVBoxLayout(self)
         fullscreen_layout.addWidget(self.label)
+        fullscreen_layout.addWidget(self.footer)
 
     def updateLabel(self):
-        song = window.myAgenda.songs[window.indexsong]
-        verse = song['Verses'][window.indexverse]
-        self.label.setText(verse['Text'])
-
+        item = window.myAgenda.data[window.indexitem]
+        slide = item.getcontent()[window.indexslide]
+        self.footer.show() # Doesn't work...
+        if item.gettype()=="Song":
+            self.setStyleSheet("background-color: blue;")
+            self.label.setText(slide['Text'])
+            self.footer.setText(item.getshort())
+        elif item.gettype()=="Bible":
+            self.setStyleSheet("background-color: grey;")
+            self.label.setText(str(slide['ID'])+ " : " + slide['Text'])
+            self.footer.setText(item.getshort())
+        elif item.gettype()=="Image":
+            pixmap = QPixmap(window.myAgenda.dirname+slide['Text'])
+            self.label.setPixmap(pixmap.scaled(self.size()))
+            self.label.setScaledContents(False)
+            self.footer.hide()
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape.value:
             self.close()
@@ -64,10 +95,13 @@ class FullScreenWindow(QWidget):
 
 
 class MainWindow(QMainWindow):
+    """ MainWindow(QWidget) a class inherited for the Main Windows.
+    """
     def __init__(self):
         super().__init__()
 
         self.myConfig = Config()
+        self.myAgenda=Agenda()
 
         # Actions File menu
         open_action = QAction("Open", self)
@@ -111,51 +145,52 @@ class MainWindow(QMainWindow):
         question_menu = self.menuBar().addMenu("?")
         question_menu.addAction(help_action)
         question_menu.addAction(about_action)
-  
 
         # Container widget
         widget = QWidget()
         self.setCentralWidget(widget)
 
-        # Creation listSongs
-        self.listSongs = ListSongs(self)
-        self.listSongs.show()
-        self.listSongs.itemClicked.connect(self.listSongs.clicked)
+        # Creation listItems
+        self.listItems = ListItems(self)
+        self.listItems.show()
+        self.listItems.itemClicked.connect(self.listItems.clicked)
 
         # Creation listVerse
-        self.listVerses = ListVerses(self)
-        self.listVerses.show()
-        self.listVerses.itemClicked.connect(self.listVerses.clicked)
+        self.listSlides = ListSlides(self)
+        self.listSlides.show()
+        self.listSlides.itemClicked.connect(self.listSlides.clicked)
 
-        # Création QHBoxLayout, add QListWidget
+        # Creation QHBoxLayout, add QListWidget
         hbox = QHBoxLayout()
-        hbox.addWidget(self.listSongs)
-        hbox.addWidget(self.listVerses)
+        hbox.addWidget(self.listItems)
+        hbox.addWidget(self.listSlides)
         widget.setLayout(hbox)
 
+        # To be modified
         self.setGeometry(100, 100, 600, 400)
+
         self.setWindowTitle("VPReader")
         self.fullScreenWindow = FullScreenWindow()
 
     def incrementIndex(self):
-        song = self.myAgenda.songs[self.indexsong]
-        NSongs = self.myAgenda.songs.__len__()
-        NVerses = song['Verses'].__len__()
-        if self.indexverse < NVerses-1:
-            self.indexverse = self.indexverse+1
+        item = self.myAgenda.data[self.indexitem]
+        NItems = self.myAgenda.data.__len__()
+        NSlides = item.getcontent().__len__()
+        if self.indexslide < NSlides-1:
+            self.indexslide = self.indexslide+1
         else:
-            if self.indexsong < NSongs-1:
-                self.indexsong = self.indexsong+1
-                self.indexverse = 0
+            if self.indexitem < NItems-1:
+                self.indexitem = self.indexitem+1
+                self.indexslide = 0
 
     def decrementIndex(self):
-        if self.indexverse > 0:
-            self.indexverse = self.indexverse-1
-        elif self.indexsong > 0:
-            self.indexsong = self.indexsong-1
-            song = self.myAgenda.songs[self.indexsong]
-            NVerses = song['Verses'].__len__()
-            self.indexverse = NVerses-1
+        if self.indexslide > 0:
+            self.indexslide = self.indexslide-1
+        elif self.indexitem > 0:
+            self.indexitem = self.indexitem-1
+            item = self.myAgenda.data[self.indexitem]
+            NSlides = item.getcontent().__len__()
+            self.indexslide = NSlides-1
 
     def doOpenFile(self):
         fname = QFileDialog.getOpenFileName(
@@ -167,20 +202,20 @@ class MainWindow(QMainWindow):
 
     def OpenFile(self, filename):
         self.myAgenda = Agenda(filename)
-        self.setWindowTitle(
-            "VPReader : " + os.path.basename(self.myAgenda.filename))
+        self.setWindowTitle("VPReader : " + os.path.basename(self.myAgenda.filename))
 
-        self.indexsong = 0
-        self.indexverse = 0
-        self.listSongs.update()
-        self.listVerses.update()
-        self.listSongs.setCurrentRow(0)
-        self.listVerses.setCurrentRow(0)
+        self.indexitem = 0
+        self.indexslide = 0
+        self.listItems.update()
+        self.listSlides.update()
+        self.listItems.setCurrentRow(0)
+        self.listSlides.setCurrentRow(0)
 
     def doCloseFile(self):
-        del self.myAgenda
-        self.listVerses.clear()
-        self.listSongs.clear()
+        if not(len(self.myAgenda.data)==0):
+            del self.myAgenda
+        self.listSlides.clear()
+        self.listItems.clear()
         self.setWindowTitle("VPReader")
 
     def doQuit(self):
@@ -190,19 +225,15 @@ class MainWindow(QMainWindow):
 
     def doFullscreen(self):
         self.fullScreenWindow.showFullScreen()
+        self.fullScreenWindow.show()
         self.fullScreenWindow.updateLabel()
     
     def doAbout(self):
-        QMessageBox.information(self, "VPReader : About", "VPReader version a01, 5/10/2023")
+        QMessageBox.information(self, "VPReader : About", "VPReader version a0.02, 5/16/2023")
 
     def doHelp(self):
         url="https://github.com/micodina/VPReader"
         webbrowser.open(url)
-
-
-#    def keyPressEvent(self, event):
-#        if event.key() == Qt.Key.Key_Escape.value:
-#            self.fullscreen_window.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

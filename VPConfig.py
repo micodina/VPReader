@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# This file is part of the VPReader project.
+#
+# This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
+# Author : Michaël Codina
+
 
 import os
 import json
 
 
 class Config(object):
+    """ Config() a class to store config/last options
+    """
     def __init__(self):
         config_dir = os.path.expanduser(
             "~/Library/Application Support/VPReader")
