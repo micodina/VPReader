@@ -62,6 +62,7 @@ class FullScreenWindow(QWidget):
         self.footer.setAlignment(Qt.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignBottom)
         self.footer.setStyleSheet("font-size: 14pt;color: white;font-weight: bold;")
         fullscreen_layout = QVBoxLayout(self)
+        fullscreen_layout.setContentsMargins(0,0,0,0)
         fullscreen_layout.addWidget(self.label)
         fullscreen_layout.addWidget(self.footer)
 
@@ -224,12 +225,13 @@ class MainWindow(QMainWindow):
         return
 
     def doFullscreen(self):
+        if len(screens)>1:
+            self.move(app.screens()[1].geometry().topLeft())
         self.fullScreenWindow.showFullScreen()
-        self.fullScreenWindow.show()
         self.fullScreenWindow.updateLabel()
     
     def doAbout(self):
-        QMessageBox.information(self, "VPReader : About", "VPReader version a0.02, 5/16/2023")
+        QMessageBox.information(self, "VPReader : About", "VPReader version a0.03, 5/23/2023")
 
     def doHelp(self):
         url="https://github.com/micodina/VPReader"
@@ -237,6 +239,9 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    screens=app.screens()
+    for sc in screens:
+        print(sc.name())
     window = MainWindow()
     window.show()
     if len(sys.argv) > 1:

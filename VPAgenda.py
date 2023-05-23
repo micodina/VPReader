@@ -18,7 +18,7 @@ import shutil
    
 
 def keysformat(ch):
-    keys=("Abbreviation", "Author", "AutoAdvance", "Background", "Body", "BodyRect", "Bold", "Books", "CaseType", "Chapters", "Chords", "Color", "Composer", "Copyright", "EndPosition", "FileName", "FontSize", "FontStyle", "Footer", "FooterRect", "Guid", "Header", "HeaderRect", "HiddenSlides", "ID", "Interval", "Introduction", "IsCompressed", "IsLooping", "IsMuted", "IsProtected", "Italic", "Language", "Luminosity", "Publisher", "Reference", "RotateFlipType", "Songs", "Source", "StartPosition", "Stretch", "Stroke", "Tag", "Template", "Testaments", "Text", "TextAlignment", "Transition", "Underlined", "UseCurrentLanguage", "Verses", "VersionDate", "VerticalAlignment", "VideoDuration", "Volume", "Wrap", "Duration")
+    keys=("Abbreviation", "Administrator", "Author", "AutoAdvance", "Background", "Body", "BodyRect", "Bold", "Books", "Brush", "CaseType", "Chapters", "Chords", "Color", "Composer", "Copyright", "Description", "EndPosition", "Fill", "FileName", "FontName", "FontSize", "FontStyle", "Footer", "FooterRect", "Guid", "Header", "HeaderRect", "HiddenSlides", "ID", "Image", "Interval", "Introduction", "IsCompressed", "IsLooping", "IsMuted", "IsProtected", "Italic", "Language", "Luminosity", "Memo1", "Publisher", "Reference", "RotateFlipType", "Sequence", "Songs", "Source", "StartPosition", "Stretch", "Stroke", "Tag", "Style", "Template", "Testaments", "Text", "TextAlignment", "Theme", "Transition", "Type", "Underlined", "UseCurrentLanguage", "Verses", "VersionDate", "VerticalAlignment", "VideoDuration", "Volume", "Wrap", "Duration")
     for k in keys:
         ch=re.sub(k+':','"' + k + '":', ch)
     return(ch)
@@ -39,7 +39,7 @@ def readJsonFile(fichier):
     # Parsing json
     data = json.loads(data, strict=False)
 
-    # Lot of json files owned an array caller "Verses" of dict with no "ID" key
+    # Lot of json files owned an array called "Verses" of dict with no "ID" key
     if "Verses" in data.keys() : 
         for i in data["Verses"]:
             if i.get("ID") is None:
@@ -52,31 +52,33 @@ class Item():
     """ Item(), an abstract class of item.
     Items are songs, biblical texts or images.
     """
-    def gettype(self):
-        return "Item"
-    def getshort(self):
-        return("short")
-    def getcontent(self):
-        return({'Text': 'slide'})
     def display(self):
         print(self.getshort())
         print(self.getcontent())
 
 class Song(Item):
-    """ Song(), an class inherited from item dedicated for Songs.
+    """ Song(), a class inherited from item dedicated for Songs.
     """
     def __init__(self, dirname, index):
         self.data=readJsonFile(dirname + "/Song_" + index + ".json" )
         self.songbook=readJsonFile(dirname + "/SongBook_" + index + ".json" )
+
     def getshort(self):
-        return("{} {} {}".format(self.songbook["Abbreviation"], self.data["ID"], self.data['Text']))
+        sh=""
+        if "ID" in self.data.keys():
+            sh=str(self.data["ID"])
+        if "Text" in self.data.keys():
+            sh=sh + " " + self.data["Text"]
+        return(sh)
+    
     def getcontent(self):
         return(self.data["Verses"])
+    
     def gettype(self):
         return("Song")
 
 class Bible(Item):
-    """ Bible(), an class inherited from item dedicated for biblical texts.
+    """ Bible(), a class inherited from item dedicated for biblical texts.
     """
     def __init__(self, dirname, index):
         self.data=readJsonFile(dirname + "/BibleVerses_" + index + ".json" )
@@ -93,21 +95,26 @@ class Bible(Item):
                 if i["ID"]<min:
                     min=i["ID"]
         return("{} {}.{}-{}".format(self.biblebook["Abbreviation"],self.biblechapter["ID"], min, max))
+    
     def getcontent(self):
         return(self.data["Verses"])
+    
     def gettype(self):
         return("Bible")
 
 class Image(Item):
-    """ Image(), an class inherited from item dedicated for Images.
+    """ Image(), a class inherited from item dedicated for Images.
     """
     def __init__(self, dirname, index):
         self.data=readJsonFile(dirname + "/Image_" + index + ".json" )
+
     def getshort(self):
         return(self.data["Text"])
+    
     def getcontent(self):
         fn=self.data["FileName"].replace('\\','/')[2::]
         return([{'Text': fn },])
+    
     def gettype(self):
         return("Image")
     
@@ -143,7 +150,6 @@ class Agenda(object):
         
         # Sort based on inode. The only way I found to get the correct order :-(
         agd.sort()
-        #print(agd)
 
         self.data=[]
         for item in agd:
