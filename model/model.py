@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This file is part of the VPReader project.
+#
+# This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
+# Author : Michaël Codina
+
 from PyQt6.QtCore import QObject, pyqtSignal, QVariant
 from model.VPAgenda import Song, Bible, Image
 
@@ -9,6 +17,8 @@ import sys
 import shutil
 
 class Model(QObject):
+    """ Model(), the model of VPReader used by MainView/FullScreenView and MainController.
+    """
     listItems_changed = pyqtSignal(QVariant)
     listSlides_changed = pyqtSignal(QVariant)
     details_changed = pyqtSignal(str)
@@ -69,7 +79,6 @@ class Model(QObject):
 
         # Display new agenda
         self.listItems_changed.emit(self.listItems)
-        #self.fslabel_changed.emit(self._data[0].getcontent()[0])
 
     def closeFile(self):
         self._data=[]

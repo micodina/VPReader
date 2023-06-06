@@ -1,10 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This file is part of the VPReader project.
+#
+# This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
+# Author : Michaël Codina
 
 from PyQt6.QtWidgets import QWidget, QLabel, QFrame, QVBoxLayout
 from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtGui import QPixmap
 
 class FullScreenView(QWidget):
-    """ FullScreenWindow(QWidget) a class inherited for the FullScreen Windows.
+    """ FullScreenView(), the FullScreen view of VPReader used by Model and MainController.
     """
     def __init__(self, model, controller):
         super().__init__()

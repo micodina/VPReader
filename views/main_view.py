@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This file is part of the VPReader project.
+#
+# This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
+# Author : Michaël Codina
+
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox
 from PyQt6.QtCore import pyqtSlot, QVariant
 from views.main_view_ui import Ui_MainWindow
@@ -7,6 +15,8 @@ import os
 import webbrowser
 
 class MainView(QMainWindow):
+    """ MainView(), the main view of VPReader used by Model and MainController.
+    """
     def __init__(self, model, main_controller):
         super().__init__()
 
@@ -65,7 +75,6 @@ class MainView(QMainWindow):
 
     def doOpenFile(self):
         fname = QFileDialog.getOpenFileName(self,  "Open File", self.myConfig.preferences["directory"], "VideoPsalm Agenda (*.vpagd);;All Files (*)")
-        #fname = QFileDialog.getOpenFileName(self,  "Open File", "C:\\Users\\MYUC7345\\Documents\\Data\\Perso\\Visonneuse VideoPsalm\\Agendas EEBC\\", "VideoPsalm Agenda (*.vpagd);;All Files (*)")
         if fname[0]:
             self._main_controller.doOpenFile(fname[0])
             self.myConfig.preferences["directory"] = os.path.dirname(fname[0])
@@ -81,17 +90,14 @@ class MainView(QMainWindow):
         self.setWindowTitle("VPReader")
         
     def doQuit(self):
-         self.close()
-    #     QApplication.quit()
-         return
+        self.close()
+        self._fullscreenview.close()
+        return
 
     def doFullscreen(self):
-    #     if len(screens)>1:
-    #         self.move(app.screens()[1].geometry().topLeft())
         self._fullscreenview.showFullScreen()
         #self._fullscreenview.show()
-        self._main_controller.navigate("up") # à reprendre...
-    #     self.fullScreenWindow.updateLabel()
+        self._main_controller.navigate("up")
     
     def doAbout(self):
         QMessageBox.information(self, "VPReader : About", "VPReader version a0.03, 5/23/2023")

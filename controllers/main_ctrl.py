@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This file is part of the VPReader project.
+#
+# This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
+# Author : Michaël Codina
+
 from PyQt6.QtCore import QObject, pyqtSlot
 
 class MainController(QObject):
+    """ MainController(), the Controller of VPReader between MainView/FullScreenView and Model.
+    """
     def __init__(self, model):
         super().__init__()
         self._model = model
