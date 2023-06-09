@@ -6,17 +6,20 @@
 # This Source Code Form is subject to the terms of GNU GENERAL PUBLIC LICENSE Version 3, see LICENSE
 # Author : Michaël Codina
 
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox
-from PyQt6.QtCore import pyqtSlot, QVariant
+
+from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QListWidget
+from PySide6.QtCore import Slot, QEvent, QObject, Qt
 from views.main_view_ui import Ui_MainWindow
 from views.VPConfig import Config
 
 import os
 import webbrowser
 
+
 class MainView(QMainWindow):
     """ MainView(), the main view of VPReader used by Model and MainController.
     """
+
     def __init__(self, model, main_controller):
         super().__init__()
 
@@ -24,85 +27,108 @@ class MainView(QMainWindow):
         self._main_controller = main_controller
         self._ui = Ui_MainWindow()
         self._ui.setupUi(self)
-        self.myConfig=Config()
+        self._ui.actionFullscreen.setEnabled(False)
+
+        self._my_config = Config()
 
         # connect widgets to controller
-        self._ui.listItems.currentRowChanged.connect(self._main_controller.itemchanged)
-        self._ui.listSlides.currentRowChanged.connect(self._main_controller.slidechanged)
-                                                      
+        self._ui.listItems.currentRowChanged.connect(
+            self._main_controller.item_changed)
+        self._ui.listSlides.currentRowChanged.connect(
+            self._main_controller.slide_changed)
+
         # connect menu actions to controller
-        self._ui.actionOpen.triggered.connect(self.doOpenFile)
-        self._ui.actionClose.triggered.connect(self.doCloseFile)  
-        self._ui.actionQuit.triggered.connect(self.doQuit)
-        self._ui.actionFullscreen.triggered.connect(self.doFullscreen)
-        self._ui.actionAbout.triggered.connect(self.doAbout)
-        self._ui.actionHelp.triggered.connect(self.doHelp)
+        self._ui.actionOpen.triggered.connect(self.do_open_file)
+        self._ui.actionClose.triggered.connect(self.do_close_file)
+        self._ui.actionQuit.triggered.connect(self.do_quit)
+        self._ui.actionFullscreen.triggered.connect(self.do_fullscreen)
+        self._ui.actionAbout.triggered.connect(self.do_about)
+        self._ui.actionHelp.triggered.connect(self.do_help)
 
         # listen for model event signals
-        self._model.listItems_changed.connect(self.on_listItems_changed)
-        self._model.listSlides_changed.connect(self.on_listSlides_changed)
-        self._model.details_changed.connect(self.on_details_changed)
-        self._model.preview_changed.connect(self.on_preview_changed)
-    
-    def setfullscreen_view(self, fullscreenview):
-        self._fullscreenview=fullscreenview
+        self._model.listItems_changed.connect(self.on_listItemschanged)
+        self._model.listSlides_changed.connect(self.on_listSlideschanged)
+        self._model.details_changed.connect(self.on_detailschanged)
+        self._model.preview_changed.connect(self.on_previewchanged)
+        self._model.selection_changed.connect(self.on_selectionchanged)
 
-    @pyqtSlot(QVariant)
-    def on_listItems_changed(self, value):
-        #print("on_listItems_changed :" + str(value))
+        # Keypress event
+        self.keyPressEvent = self.handle_key_press_event
+
+    def setfullscreen_view(self, fullscreenview):
+        self._fullscreenview = fullscreenview
+
+    @Slot(list)
+    def on_listItemschanged(self, value):
+        # print("on_listItemschanged :" + str(value))
         for it in value:
             self._ui.listItems.addItem(it)
         self._ui.listItems.setCurrentRow(0)
 
-    @pyqtSlot(QVariant)
-    def on_listSlides_changed(self, value):
-        #print("on_listSlides_changed :" + str(value))
+    @Slot(list)
+    def on_listSlideschanged(self, value):
+        # print("on_listSlideschanged :" + str(value))
         self._ui.listSlides.clear()
         for it in value:
             self._ui.listSlides.addItem(it)
         self._ui.listSlides.setCurrentRow(0)
-    
-    @pyqtSlot(str)
-    def on_details_changed(self,value):
-        #print("on_details_changed :" + str(value))
+
+    @Slot(str)
+    def on_detailschanged(self, value):
+        # print("on_detailschanged :" + str(value))
         self._ui.labelDetails.setText(value)
 
-    @pyqtSlot(str)
-    def on_preview_changed(self,value):
-        #print("on_preview_changed :" + str(value))
-        self._ui.labelPreview.setText(value)        
+    @Slot(str)
+    def on_previewchanged(self, value):
+        # print("on_previewchanged :" + str(value))
+        self._ui.labelPreview.setText(value)
 
+    @Slot(int, int)
+    def on_selectionchanged(self, item, slide):
+        self._ui.listItems.setCurrentRow(item)
+        self._ui.listSlides.setCurrentRow(slide)
 
-    def doOpenFile(self):
-        fname = QFileDialog.getOpenFileName(self,  "Open File", self.myConfig.preferences["directory"], "VideoPsalm Agenda (*.vpagd);;All Files (*)")
+    def do_open_file(self):
+        fname = QFileDialog.getOpenFileName(
+            self,  "Open File", self._my_config.preferences["directory"], "VideoPsalm Agenda (*.vpagd);;All Files (*)")
         if fname[0]:
-            self._main_controller.doOpenFile(fname[0])
-            self.myConfig.preferences["directory"] = os.path.dirname(fname[0])
-            self.myConfig.save()
+            self._main_controller.do_open_file(fname[0])
+            self._my_config.preferences["directory"] = os.path.dirname(fname[0])
+            self._my_config.save()
             self.setWindowTitle("VPReader - " + os.path.basename(fname[0]))
-    
-    def doCloseFile(self):
-        self._main_controller.doCloseFile()
+            self._ui.actionFullscreen.setEnabled(True)
+
+    def do_close_file(self):
+        self._main_controller.do_close_file()
         self._ui.listItems.clear()
         self._ui.listSlides.clear()
         self._ui.labelDetails.setText("")
         self._ui.labelPreview.setText("")
         self.setWindowTitle("VPReader")
-        
-    def doQuit(self):
+        self._ui.actionFullscreen.setEnabled(False)
+
+    def do_quit(self):
         self.close()
         self._fullscreenview.close()
         return
 
-    def doFullscreen(self):
-        self._fullscreenview.showFullScreen()
-        #self._fullscreenview.show()
-        self._main_controller.navigate("up")
-    
-    def doAbout(self):
-        QMessageBox.information(self, "VPReader : About", "VPReader version a0.03, 5/23/2023")
+    def do_fullscreen(self):
+        # self._fullscreenview.showFullScreen()
+        self._fullscreenview.show()
+        self.activateWindow()
 
-    def doHelp(self):
-         url="https://github.com/micodina/VPReader"
-         webbrowser.open(url)
+    def do_about(self):
+        QMessageBox.information(self, "VPReader : About",
+                                "VPReader version a0.03, 5/23/2023")
 
+    def do_help(self):
+        url = "https://github.com/micodina/VPReader"
+        webbrowser.open(url)
+
+    def handle_key_press_event(self, event):
+        if event.key() == Qt.Key_Down:
+            self._main_controller.jump("down")
+        elif event.key() == Qt.Key_Up:
+            self._main_controller.jump("up")
+        elif event.key() == Qt.Key.Key_Escape.value:
+            self._fullscreenview.close()

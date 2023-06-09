@@ -9,14 +9,24 @@
 
 import os
 import json
+import platform
 
 
 class Config(object):
     """ Config() a class to store config/last options
     """
+
     def __init__(self):
-        config_dir = os.path.expanduser(
-            "~/Library/Application Support/VPReader")
+
+        if platform.system() == 'Windows':
+            config_dir = os.getenv("USERPROFILE")+'\VPReader'
+            defaultprefdir = os.getenv("USERPROFILE")
+
+        else:  # macOS, linux ?
+            config_dir = os.path.expanduser(
+                "~/Library/Application Support/VPReader")
+            defaultprefdir = os.getenv("HOME") + "/Documents"
+
         self.config_path = os.path.join(config_dir, "VPReader.json")
 
         # Create configuration directery if not exists
@@ -29,7 +39,7 @@ class Config(object):
                 self.preferences = json.load(config_file)
         else:
             self.preferences = {}
-            self.preferences["directory"] = os.getenv("HOME") + "/Documents"
+            self.preferences["directory"] = defaultprefdir
             self.preferences["fullscreen_bg_color"] = "blue"
             self.save()
 

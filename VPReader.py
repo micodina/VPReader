@@ -7,15 +7,17 @@
 # Author : Michaël Codina
 
 import sys
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from model.model import Model
 from controllers.main_ctrl import MainController
 from views.main_view import MainView
 from views.fullscreen_view import FullScreenView
 
+
 class App(QApplication):
     """ App(), the QApplication class, entry point of VPReader.
     """
+
     def __init__(self, sys_argv):
         super(App, self).__init__(sys_argv)
         self.model = Model()
@@ -24,9 +26,8 @@ class App(QApplication):
         self.main_view = MainView(self.model, self.main_controller)
         self.main_view.show()
 
-        self.fullscreen = FullScreenView(self.model, self.main_controller)
-        self.main_view.setfullscreen_view(self.fullscreen)
-
+        self.fullscreen_view = FullScreenView(self.model, self.main_controller)
+        self.main_view.setfullscreen_view(self.fullscreen_view)
 
 
 if __name__ == '__main__':
