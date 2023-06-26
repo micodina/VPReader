@@ -1,0 +1,69 @@
+{
+    "Version" : "2023/5/15",
+    "Song_N.json" : {
+        "ID":"Number",
+        "Composer":"String",
+        "Author":"String",
+        "Copyright":"String",
+        "Reference":"String",
+        "Guid":"String",
+        "Verses":[
+            {
+                "Tag":"Number",
+                "ID":"Number",
+                "Text":"String"
+            }
+        ], 
+        "VideoDuration":"Number",
+        "Text":"String"
+    },
+    "SongBook_N.json" : {
+        "Abbreviation":"String", 
+        "Songs":[], 
+        "Guid":"String", 
+        "VersionDate":"String", 
+        "Text":"String"
+    },
+    "Bible_N.json" : {
+        "Abbreviation":"String",
+        "Publisher":"String",
+        "Introduction":"String",
+        "VersionDate":"String",
+        "IsCompressed":"Number",
+        "IsProtected":"Number",
+        "UseCurrentLanguage":"Number",
+        "Guid":"String", 
+        "Testaments":[],
+        "Language":"String",
+        "Source":"Number",
+        "Text":"String"
+    },
+    "BibleBook_N.json" : {
+        "ID":"Number",
+        "Abbreviation":"String",
+        "Chapters":[],
+        "Text":"String"
+    },
+    "Testament_N.json":{
+        "ID":"Number",
+        "Books":[],
+        "Text":"String"
+    },
+    "BibleChapter_N.json" : {
+        "ID":"Number",
+        "Verses":[]
+    },
+    "BibleVerses_N.json" : {
+        "Verses":[
+            {
+                "ID":"Number",
+                "Text":"Number"
+            }
+        ]
+    },
+    "Image_N.json" : {
+        "FileName":"String",
+        "RotateFlipType":"Number",
+        "Text":"String"
+    }
+}
