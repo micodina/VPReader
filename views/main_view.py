@@ -93,7 +93,8 @@ class MainView(QMainWindow):
             self,  "Open File", self._my_config.preferences["directory"], "VideoPsalm Agenda (*.vpagd);;All Files (*)")
         if fname[0]:
             self._main_controller.do_open_file(fname[0])
-            self._my_config.preferences["directory"] = os.path.dirname(fname[0])
+            self._my_config.preferences["directory"] = os.path.dirname(
+                fname[0])
             self._my_config.save()
             self.setWindowTitle("VPReader - " + os.path.basename(fname[0]))
             self._ui.actionFullscreen.setEnabled(True)
@@ -119,7 +120,7 @@ class MainView(QMainWindow):
 
     def do_about(self):
         QMessageBox.information(self, "VPReader : About",
-                                "VPReader version a0.03, 5/23/2023")
+                                "VPReader version a0.04, 6/26/2023")
 
     def do_help(self):
         url = "https://github.com/micodina/VPReader"
@@ -132,3 +133,4 @@ class MainView(QMainWindow):
             self._main_controller.jump("up")
         elif event.key() == Qt.Key.Key_Escape.value:
             self._fullscreenview.close()
+        return super().keyPressEvent(event)

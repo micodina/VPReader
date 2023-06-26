@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(640, 480)
+        MainWindow.resize(800, 600)
         self.actionOpen = QAction(MainWindow)
         self.actionOpen.setObjectName(u"actionOpen")
         self.actionClose = QAction(MainWindow)
@@ -41,6 +41,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.vboxLayout = QVBoxLayout(self.centralwidget)
         self.vboxLayout.setObjectName(u"vboxLayout")
+        self.vboxLayout.setContentsMargins(5, 5, 5, -1)
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
         self.label = QLabel(self.centralwidget)
@@ -77,6 +78,8 @@ class Ui_MainWindow(object):
         self.labelPreview = QLabel(self.centralwidget)
         self.labelPreview.setObjectName(u"labelPreview")
         self.labelPreview.setMinimumSize(QSize(0, 150))
+        self.labelPreview.setFrameShape(QFrame.Box)
+        self.labelPreview.setWordWrap(True)
 
         self.gridLayout.addWidget(self.labelPreview, 4, 2, 1, 1)
 
@@ -100,6 +103,8 @@ class Ui_MainWindow(object):
         self.labelDetails = QLabel(self.centralwidget)
         self.labelDetails.setObjectName(u"labelDetails")
         self.labelDetails.setMinimumSize(QSize(0, 150))
+        self.labelDetails.setFrameShape(QFrame.Box)
+        self.labelDetails.setWordWrap(True)
 
         self.gridLayout.addWidget(self.labelDetails, 4, 0, 1, 1)
 
@@ -119,7 +124,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menuBar = QMenuBar(MainWindow)
         self.menuBar.setObjectName(u"menuBar")
-        self.menuBar.setGeometry(QRect(0, 0, 640, 22))
+        self.menuBar.setGeometry(QRect(0, 0, 800, 37))
         self.menuDisplay = QMenu(self.menuBar)
         self.menuDisplay.setObjectName(u"menuDisplay")
         self.menuHelp = QMenu(self.menuBar)

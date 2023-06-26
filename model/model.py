@@ -30,6 +30,8 @@ class Model(QObject):
     fslabel_bible_changed = Signal(str)
     fslabel_song_changed = Signal(str)
     fslabel_image_changed = Signal(str)
+    fslabel_black_changed = Signal()
+
     fsfooter_changed = Signal(str)
 
     def list_items(self):
@@ -51,6 +53,7 @@ class Model(QObject):
         else:
             self.dirname = tempfile.gettempdir()+"/VPReader"
         try:
+            shutil.rmtree(self.dirname, ignore_errors=True)
             os.mkdir(self.dirname)
         except OSError as e:
             print("Error: %s : %s" % (self.dirname, e.strerror))

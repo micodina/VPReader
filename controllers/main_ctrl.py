@@ -18,6 +18,7 @@ class MainController(QObject):
         self._model = model
         self._current_item = -1
         self._current_slide = -1
+        self._black = False
 
     @Slot()
     def do_open_file(self, filename):
@@ -67,6 +68,15 @@ class MainController(QObject):
                 self._model.fsfooter_changed.emit(item.get_short())
 
     def jump(self, sens):
+        # Default turn black screen
+        if not (self._black):
+            # print("Black")
+            self._black = True
+            self._model.fslabel_black_changed.emit()
+            return
+        self._black = False
+
+        # After black screen, to a jump
         if sens == "down":
             # Not the last item ?
             if self._current_item < self._model._data.__len__()-1:
@@ -79,4 +89,5 @@ class MainController(QObject):
                 self.item_changed(self._current_item)
                 self.slide_changed(
                     self._model[self._current_item].get_content().__len__()-1)
-        self._model.selection_changed.emit(self._current_item, self._current_slide)
+        self._model.selection_changed.emit(
+            self._current_item, self._current_slide)

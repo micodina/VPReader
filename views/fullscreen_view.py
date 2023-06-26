@@ -21,15 +21,15 @@ class FullScreenView(QWidget):
 
         self._model = model
         self._fullscreen_controller = controller
-        self.setGeometry(0, 0, 640, 480)
+        self.setGeometry(0, 0, 800, 600)
         self.label = QLabel(self)
-        self.label.setFrameShape(QFrame.Shape.Box)
+        # self.label.setFrameShape(QFrame.Shape.Box)
         self.label.setWordWrap(True)
         self.label.setStyleSheet(
             "font-size: 48pt;color: white;font-weight: bold;")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.footer = QLabel(self)
-        self.footer.setFrameShape(QFrame.Shape.Box)
+        # self.footer.setFrameShape(QFrame.Shape.Box)
         self.footer.setStyleSheet(
             "font-size: 14pt;color: white;font-weight: bold;")
         self.footer.setFixedHeight(28)
@@ -39,6 +39,7 @@ class FullScreenView(QWidget):
         layout.addWidget(self.footer)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        self.setFocusPolicy(Qt.NoFocus)
 
         # listen for model event signals
         self._model.fslabel_song_changed.connect(self.on_fslabel_song_changed)
@@ -47,6 +48,8 @@ class FullScreenView(QWidget):
         self._model.fslabel_image_changed.connect(
             self.on_fslabel_image_changed)
         self._model.fsfooter_changed.connect(self.on_footer_changed)
+        self._model.fslabel_black_changed.connect(
+            self.on_fslabel_black_changed)
 
     @Slot(str)
     def on_fslabel_bible_changed(self, value):
@@ -68,6 +71,13 @@ class FullScreenView(QWidget):
         self.footer.hide()
         pixmap = QPixmap(value)
         self.label.setPixmap(pixmap.scaled(self.label.size()))
+
+    @Slot()
+    def on_fslabel_black_changed(self):
+        # print("on_fslabel_black_changed")
+        self.footer.hide()
+        self.label.setText("")
+        self.setStyleSheet("background-color: black;")
 
     @Slot(str)
     def on_footer_changed(self, value):
