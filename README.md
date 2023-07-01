@@ -13,8 +13,6 @@ If you are a developper, see it as a first step in the mac world for VideoPsalmÂ
 
 VPReader rely on PySide, a free implementation of QT for Python: Be indulgent, I'm a beginner!
 
-For now, I am releasing an Apple Silicon (aka m1/m2) version of VPReader.
-
 ## Features
   can then display agenda contents as well as contents of each song, biblical text and image.
 
