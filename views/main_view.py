@@ -8,7 +8,7 @@
 
 
 from PySide6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QListWidget
-from PySide6.QtCore import Slot, QEvent, QObject, Qt
+from PySide6.QtCore import Slot, QEvent, QObject, Qt, QPoint
 from views.main_view_ui import Ui_MainWindow
 from views.VPConfig import Config
 
@@ -32,10 +32,8 @@ class MainView(QMainWindow):
         self._my_config = Config()
 
         # connect widgets to controller
-        self._ui.listItems.currentRowChanged.connect(
-            self._main_controller.item_changed)
-        self._ui.listSlides.currentRowChanged.connect(
-            self._main_controller.slide_changed)
+        self._ui.listItems.currentRowChanged.connect(self._main_controller.item_changed)
+        self._ui.listSlides.currentRowChanged.connect(self._main_controller.slide_changed)
 
         # connect menu actions to controller
         self._ui.actionOpen.triggered.connect(self.do_open_file)
@@ -50,7 +48,8 @@ class MainView(QMainWindow):
         self._model.listSlides_changed.connect(self.on_listSlideschanged)
         self._model.details_changed.connect(self.on_detailschanged)
         self._model.preview_changed.connect(self.on_previewchanged)
-        self._model.selection_changed.connect(self.on_selectionchanged)
+        self._model.selection_item_changed.connect(self.on_selectionitemchanged)
+        self._model.selection_slide_changed.connect(self.on_selectionslidechanged)
 
         # Keypress event
         self.keyPressEvent = self.handle_key_press_event
@@ -67,7 +66,7 @@ class MainView(QMainWindow):
 
     @Slot(list)
     def on_listSlideschanged(self, value):
-        # print("on_listSlideschanged :" + str(value))
+        #print("on_listSlideschanged : ", value)
         self._ui.listSlides.clear()
         for it in value:
             self._ui.listSlides.addItem(it)
@@ -83,9 +82,12 @@ class MainView(QMainWindow):
         # print("on_previewchanged :" + str(value))
         self._ui.labelPreview.setText(value)
 
-    @Slot(int, int)
-    def on_selectionchanged(self, item, slide):
+    def on_selectionitemchanged(self, item):
+        #print("listItems.setCurrentRow")
         self._ui.listItems.setCurrentRow(item)
+    
+    def on_selectionslidechanged(self, slide):
+        #print("listSlides.setCurrentRow")
         self._ui.listSlides.setCurrentRow(slide)
 
     def do_open_file(self):
@@ -127,10 +129,18 @@ class MainView(QMainWindow):
         webbrowser.open(url)
 
     def handle_key_press_event(self, event):
+        #print("handle_key_press_event")
         if event.key() == Qt.Key_Down:
             self._main_controller.jump("down")
         elif event.key() == Qt.Key_Up:
             self._main_controller.jump("up")
         elif event.key() == Qt.Key.Key_Escape.value:
             self._fullscreenview.close()
+        # elif event.key() == Qt.Key_Right:
+        #     nav = self._fullscreenview.pdfview.pageNavigator()
+        #     nav.jump(nav.currentPage() + 1, QPoint(), nav.currentZoom())
+        # elif event.key() == Qt.Key_Left:
+        #     nav = self._fullscreenview.pdfview.pageNavigator()
+        #     nav.jump(nav.currentPage() - 1, QPoint(), nav.currentZoom())
         return super().keyPressEvent(event)
+    

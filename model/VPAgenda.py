@@ -9,6 +9,8 @@
 import re
 import json
 import platform
+from PySide6.QtPdf import QPdfDocument
+
 
 
 def keys_format(ch):
@@ -166,3 +168,50 @@ class Image(Item):
 
     def get_type(self):
         return ("Image")
+
+class Pdf(Item):
+    """ Pdf(), a class inherited from item dedicated for Images.
+    """
+
+    def __init__(self, dirname, index):
+        
+        if platform.system() == 'Windows':
+            self.data = read_json_file(dirname + "\\Pdf_" + index + ".json")
+        else:
+            self.data = read_json_file(dirname + "/Pdf_" + index + ".json")
+        
+        # Read the pdf file
+        fn=dirname + self.data["FileName"][2::]
+        if platform.system() == 'Windows':
+            pass
+        else:
+            fn = fn.replace('\\','/')
+        self._filename=fn
+
+        print("Reading: " + fn)
+        doc=QPdfDocument()
+        doc.load(fn)
+        self._content=[]
+        i=0
+        while i<doc.pageCount() :
+            self._content.append(doc.pageLabel(i))
+            i=i+1
+        # On peut probablement extraire plus d'info du pdf... et les ranger dans des arguments d'instance et les renvoyer par get_details() et get_short().
+        #print(self._document.getAllText(2).text())
+        del doc
+
+    def get_short(self):
+        return (self.data["Text"])
+
+    def get_content(self):
+        return(self._content)
+
+    def get_details(self):
+        fn = self.data["FileName"]
+        return (fn)
+    
+    def get_filename(self):
+        return(self._filename)
+
+    def get_type(self):
+        return ("Pdf")

@@ -7,7 +7,7 @@
 # Author : Michaël Codina
 
 from PySide6.QtCore import QObject, Signal
-from model.VPAgenda import Song, Bible, Image
+from model.VPAgenda import Song, Bible, Image, Pdf
 
 import glob
 import tempfile
@@ -25,11 +25,13 @@ class Model(QObject):
     listSlides_changed = Signal(list)
     details_changed = Signal(str)
     preview_changed = Signal(str)
-    selection_changed = Signal(int, int)
+    selection_item_changed = Signal(int)
+    selection_slide_changed = Signal(int)
 
     fslabel_bible_changed = Signal(str)
     fslabel_song_changed = Signal(str)
     fslabel_image_changed = Signal(str)
+    fspdfview_changed = Signal(str, int)
     fslabel_black_changed = Signal()
 
     fsfooter_changed = Signal(str)
@@ -42,6 +44,9 @@ class Model(QObject):
 
     def __getitem__(self, index):
         return self._data[index]
+    
+    def __len__(self):
+        return len(self._data)
 
     def load_agenda_from_file(self, newfilename):
         # print("Opening : "+ newfilename)
@@ -64,7 +69,7 @@ class Model(QObject):
 
         # Directory analysis
         agd = []
-        for type in ["Song", "Bible", "Image"]:
+        for type in ["Song", "Bible", "Image", "Pdf"]:
             if platform.system() == 'Windows':
                 filter = self.dirname+"\\"+type+"_*.json"
             else:
@@ -89,9 +94,8 @@ class Model(QObject):
                 self._data.append(Bible(self.dirname, index))
             elif type == "Image":
                 self._data.append(Image(self.dirname, index))
-
-        # Display new agenda
-        self.listItems_changed.emit(self.list_items())
+            elif type == "Pdf":
+                self._data.append(Pdf(self.dirname,index))
 
     def close_file(self):
         self._data = []
@@ -111,6 +115,7 @@ class Model(QObject):
             self.load_agenda_from_file(newfilename)
 
     def __del__(self):
+        print("del Model()")
         # Remove temp directory
         try:
             shutil.rmtree(self.dirname, ignore_errors=True)
